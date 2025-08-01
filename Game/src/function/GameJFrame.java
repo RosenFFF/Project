@@ -4,16 +4,34 @@ package function;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.Random;
 
-public class GameJFrame extends JFrame implements KeyListener {
+public class GameJFrame extends JFrame implements KeyListener, ActionListener {
 
 
     int[][] data = new int[3][5];
     int x = 0;
     int y = 0;
+    //正确数组
+    int [][] win = {
+            {1,2,3,4,5},
+            {6,7,8,9,10},
+            {11,12,13,14,0}
+
+    };
+
+    //步数
+    int step=0;
+
+    //二级菜单
+    JMenuItem ReplayItem = new JMenuItem("重新游戏");
+    JMenuItem ReloginItem = new JMenuItem("重新登陆");
+    JMenuItem closeItem = new JMenuItem("关闭游戏");
+    JMenuItem accountItem = new JMenuItem("关注我");
 
 
     public GameJFrame() {
@@ -49,9 +67,8 @@ public class GameJFrame extends JFrame implements KeyListener {
             if (temp[i] == 0) {
                 x = i / 5;
                 y = i % 5;
-            } else {
-                data[i / 5][i % 5] = temp[i];
             }
+                data[i / 5][i % 5] = temp[i];
         }
 
 
@@ -60,6 +77,21 @@ public class GameJFrame extends JFrame implements KeyListener {
     private void InitImage() {
 
         this.getContentPane().removeAll();
+
+        if(victory()){
+            JLabel winjlabel =new JLabel(new ImageIcon("Game/src/image/win.png"));
+            winjlabel.setBounds(400,400,197,73);
+            this.getContentPane().add(winjlabel);
+
+        }
+
+        JLabel stepCount =new JLabel("步数"+step);
+        stepCount.setBounds(50,30,200,50);
+        this.getContentPane().add(stepCount);
+
+
+
+
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 5; j++) {
                 int num = data[i][j];
@@ -94,17 +126,19 @@ public class GameJFrame extends JFrame implements KeyListener {
         JMenuBar jMenuBar = new JMenuBar();
         //功能
         JMenu functionJMenu = new JMenu("功能");
-        JMenu aboutJMenu = new JMenu("关于我们");
-        //二级菜单
-        JMenuItem ReplayItem = new JMenuItem("重新游戏");
-        JMenuItem ReloginItem = new JMenuItem("重新登陆");
-        JMenuItem closeItem = new JMenuItem("关闭游戏");
-        JMenuItem accountItem = new JMenuItem("公众号");
+        JMenu aboutJMenu = new JMenu("关于我");
 
         functionJMenu.add(ReplayItem);
         functionJMenu.add(ReloginItem);
         functionJMenu.add(closeItem);
         aboutJMenu.add(accountItem);
+        //绑定事件
+        ReplayItem.addActionListener(this);
+        ReloginItem.addActionListener(this);
+        closeItem.addActionListener(this);
+        accountItem.addActionListener(this);
+
+
 
         jMenuBar.add(functionJMenu);
         jMenuBar.add(aboutJMenu);
@@ -154,14 +188,20 @@ public class GameJFrame extends JFrame implements KeyListener {
 
     @Override
     public void keyReleased(KeyEvent e) {
-        int code = e.getKeyCode();
 
+        if(victory()){
+            return;
+        }
+
+
+        int code = e.getKeyCode();
         if (code == 37) { // 左方向键 - 空格向左移动（数字向右移动）
             if (y > 0) { // 确保 y-1 不小于0
                 // 交换空格和左侧的数字
                 data[x][y] = data[x][y - 1];
                 data[x][y - 1] = 0;
                 y--; // 空格位置向左移动
+                step++;
                 InitImage();
             }
         } else if (code == 38) { // 上方向键 - 空格向上移动（数字向下移动）
@@ -170,6 +210,7 @@ public class GameJFrame extends JFrame implements KeyListener {
                 data[x][y] = data[x - 1][y];
                 data[x - 1][y] = 0;
                 x--; // 空格位置向上移动
+                step++;
                 InitImage();
             }
         } else if (code == 39) { // 右方向键 - 空格向右移动（数字向左移动）
@@ -178,6 +219,7 @@ public class GameJFrame extends JFrame implements KeyListener {
                 data[x][y] = data[x][y + 1];
                 data[x][y + 1] = 0;
                 y++; // 空格位置向右移动
+                step++;
                 InitImage();
             }
         } else if (code == 40) { // 下方向键 - 空格向下移动（数字向上移动）
@@ -186,10 +228,66 @@ public class GameJFrame extends JFrame implements KeyListener {
                 data[x][y] = data[x + 1][y];
                 data[x + 1][y] = 0;
                 x++; // 空格位置向下移动
+                step++;
                 InitImage();
             }
         } else if (code == 65) {
             InitImage();
+        } else if (code == 87) {
+            data=new int[][]{
+                    {1,2,3,4,5},
+                    {6,7,8,9,10},
+                    {11,12,13,14,0}
+            };
+            InitImage();
         }
     }
+
+
+    public boolean victory(){
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[i].length; j++) {
+                if(data[i][j]!=win[i][j]){
+                    return false;
+                }
+            } 
+        }
+        return true;
+    }
+
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Object obj=e.getSource();
+
+        if(obj==ReplayItem){
+
+            step=0;
+            //打乱数据
+            InitData();
+            //加载图片
+            InitImage();
+        } else if (obj==ReloginItem) {
+            this.setVisible(false);
+            new loginJFrame();
+            
+        } else if (obj == closeItem) {
+            System.exit(0);
+
+        } else if (obj == accountItem) {
+
+            JDialog jDialog =new JDialog();
+            JLabel mejlabel=new JLabel(new ImageIcon("Game/src/image/me.png"));
+            mejlabel.setBounds(0,0,634,866);
+            jDialog.getContentPane().add(mejlabel);
+            jDialog.setSize(800,800);
+            jDialog.setAlwaysOnTop(true);
+            jDialog.setLocationRelativeTo(null);
+            jDialog.setVisible(true);
+
+        }
+
+    }
 }
+
+
